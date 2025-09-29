@@ -392,6 +392,7 @@ def main(input, output, format, lut):
         with open(output, output_options.write_mode) as f:
             df.write_csv(f, include_header=output_options.add_header)
         print(f"Processed {path}. {df.height} rows written to {output}")
+        output_options = OuputOptions("a", False)
 
 
 if __name__ == "__main__":
