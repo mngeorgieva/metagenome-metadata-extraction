@@ -36,7 +36,7 @@ class SummaryTable(ABC):
         "host_tolid": String,
         "host_species": String,
         "assembler": String,
-        "binner/refiner": String,
+        "binner_refiner": String,
         "size": Int32,
         "quality": String,
         "completeness": Float32,
@@ -110,7 +110,7 @@ class SummaryTable(ABC):
             "host_tolid": self.host_tolid(),
             "host_species": self.host_species(),
             "assembler": self.assembler(),
-            "binner/refiner": self.binner_refiner(),
+            "binner_refiner": self.binner_refiner(),
             "size": self.size(),
             "quality": self.quality(),
             "completeness": self.completeness(),
@@ -196,7 +196,7 @@ class Noah(SummaryTable):
         return self.df["host"]
 
     def host_species(self) -> Series:
-        return self.df["host_species"]
+        return Series([None] * self.df.height)
 
     def assembler(self) -> Series:
         return self.df["assembler"]
@@ -224,6 +224,12 @@ class Noah(SummaryTable):
 
     def filter(self) -> Expr:
         return pl.col("quality").is_in(["high", "medium"])
+
+    def drop(self) -> list[str]:
+        return ["host_species"]
+
+    def rename_columns(self) -> dict:
+        return {"host_taxname": "host_species"}
 
 
 class SummaryTableFormat(Enum):
