@@ -37,6 +37,7 @@ class SummaryTable(ABC):
         "host_species": String,
         "assembler": String,
         "binner_refiner": String,
+        "bin_id": String,
         "size": Int32,
         "quality": String,
         "completeness": Float32,
@@ -66,6 +67,10 @@ class SummaryTable(ABC):
 
     @abstractmethod
     def binner_refiner(self) -> Series:
+        pass
+
+    @abstractmethod
+    def bin_id(self) -> Series:
         pass
 
     @abstractmethod
@@ -111,6 +116,7 @@ class SummaryTable(ABC):
             "host_species": self.host_species(),
             "assembler": self.assembler(),
             "binner_refiner": self.binner_refiner(),
+            "bin_id": self.bin_id(),
             "size": self.size(),
             "quality": self.quality(),
             "completeness": self.completeness(),
@@ -156,6 +162,9 @@ class Jim(SummaryTable):
     def binner_refiner(self) -> Series:
         return self.df["binner"]
 
+    def bin_id(self) -> Series:
+        return self.df["bin"]
+
     def size(self) -> Series:
         return self.df["sum_len"]
 
@@ -175,7 +184,7 @@ class Jim(SummaryTable):
         return self.df["ncbi_classification"]
 
     def filter(self) -> Expr:
-        return (pl.col("binner/refiner") == "dastool") & (
+        return (pl.col("binner_refiner") == "dastool") & (
             pl.col("quality").is_in(["high", "medium"])
         )
 
@@ -203,6 +212,17 @@ class Noah(SummaryTable):
 
     def binner_refiner(self) -> Series:
         return self.df["refining_program"]
+
+    def bin_id(self) -> Series:
+        return (
+            self.df["host"]
+            + "_"
+            + self.df["binning_program"]
+            + "_"
+            + self.df["refining_program"]
+            + "_"
+            + self.df["bin_id"]
+        )
 
     def size(self) -> Series:
         return self.df["size"]
