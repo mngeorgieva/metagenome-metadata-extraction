@@ -20,11 +20,13 @@ from polars.datatypes import Float32, Int32, String
 
 # Constants
 LOOKUP_TABLE_SCHEMA = {
+    "host_tolid": String,
+    "host_taxid": String,
+    "host_taxname": String,
     "phylum": String,
+    "tissue_pacbio": String,
     "reducing_env": String,
     "is_deep_sea": String,
-    "host_taxname": String,
-    "host_tolid": String,
 }
 
 
@@ -34,7 +36,12 @@ class SummaryTable(ABC):
 
     HARMONISED_SCHEMA = {
         "host_tolid": String,
+        "host_taxid": String,
         "host_species": String,
+        "phylum": String,
+        "tissue_pacbio": String,
+        "reducing_env": String,
+        "is_deep_sea": String,
         "assembler": String,
         "binner_refiner": String,
         "bin_id": String,
@@ -44,9 +51,10 @@ class SummaryTable(ABC):
         "contamination": Float32,
         "gtdb_classification": String,
         "ncbi_classification": String,
-        "phylum": String,
-        "reducing_env": String,
-        "is_deep_sea": String,
+        "num_seqs_or_contigs": Int32,
+        "num_circular": Int32,
+        "total_trnas": Int32,
+        "unique_trnas": Int32,
     }
 
     def __init__(self, input: DataFrame, lookup_table: DataFrame):
@@ -97,6 +105,22 @@ class SummaryTable(ABC):
     def ncbi_classification(self) -> Series:
         pass
 
+    @abstractmethod
+    def num_seqs_or_contigs(self) -> Series:
+        pass
+
+    @abstractmethod
+    def num_circular(self) -> Series:
+        pass
+
+    @abstractmethod
+    def total_trnas(self) -> Series:
+        pass
+
+    @abstractmethod
+    def unique_trnas(self) -> Series:
+        pass
+
     def filter(self) -> Expr | None:
         """Apply a filter to the harmonised DataFrame."""
         return None
@@ -123,6 +147,10 @@ class SummaryTable(ABC):
             "contamination": self.contamination(),
             "gtdb_classification": self.gtdb_classification(),
             "ncbi_classification": self.ncbi_classification(),
+            "num_seqs_or_contigs": self.num_seqs_or_contigs(),
+            "num_circular": self.num_circular(),
+            "total_trnas": self.total_trnas(),
+            "unique_trnas": self.unique_trnas()
         }
         try:
             df = pl.DataFrame(data).join(
@@ -152,7 +180,7 @@ class Jim(SummaryTable):
 
     def host_tolid(self) -> Series:
         return self.df["bin"].str.split("_").list.get(0)
-
+    
     def host_species(self) -> Series:
         return Series([None] * self.df.height)
 
@@ -182,6 +210,18 @@ class Jim(SummaryTable):
 
     def ncbi_classification(self) -> Series:
         return self.df["ncbi_classification"]
+
+    def num_seqs_or_contigs(self) -> Series:
+        return self.df["num_seqs"]
+
+    def num_circular(self) -> Series:
+        return self.df["n_circ"]
+
+    def total_trnas(self) -> Series:
+        return self.df["total_trnas"]
+    
+    def unique_trnas(self) -> Series:
+        return self.df["unique_trnas"]
 
     def filter(self) -> Expr:
         return (pl.col("binner_refiner") == "dastool") & (
@@ -241,6 +281,18 @@ class Noah(SummaryTable):
 
     def ncbi_classification(self) -> Series:
         return self.df["ncbi_classification"]
+    
+    def num_seqs_or_contigs(self) -> Series:
+        return self.df["contigs"]
+
+    def num_circular(self) -> Series:
+        return self.df["circular"]
+
+    def total_trnas(self) -> Series:
+        return self.df["total_trnas"]
+
+    def unique_trnas(self) -> Series:
+        return self.df["unique_trnas"]
 
     def filter(self) -> Expr:
         return pl.col("quality").is_in(["high", "medium"])
@@ -351,7 +403,7 @@ def get_summary_table(
         ValueError: If there is an error reading the summary table or if required columns are missing
     """
     try:
-        df = pl.read_csv(file_path, separator=format.separator)
+        df = pl.read_csv(file_path, separator=format.separator, null_values=["","NA","NaN","nan"])
         df = format.table_definition(df, lookup_table).harmonise()
     except pl.exceptions.ColumnNotFoundError as e:
         raise ValueError(
