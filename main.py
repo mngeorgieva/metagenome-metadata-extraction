@@ -16,7 +16,7 @@ from pathlib import Path
 import click
 import polars as pl
 from polars import DataFrame, Expr, Series
-from polars.datatypes import Float32, Int32, String
+from polars.datatypes import Float32, Int32, Int64, String
 
 # Constants
 LOOKUP_TABLE_SCHEMA = {
