@@ -45,6 +45,7 @@ class SummaryTable(ABC):
         "assembler": String,
         "binner_refiner": String,
         "bin_id": String,
+        "mag_tolid": String,
         "size": Int32,
         "quality": String,
         "completeness": Float32,
@@ -79,6 +80,10 @@ class SummaryTable(ABC):
 
     @abstractmethod
     def bin_id(self) -> Series:
+        pass
+
+    @abstractmethod
+    def mag_tolid(self) -> Series:
         pass
 
     @abstractmethod
@@ -141,6 +146,7 @@ class SummaryTable(ABC):
             "assembler": self.assembler(),
             "binner_refiner": self.binner_refiner(),
             "bin_id": self.bin_id(),
+            "mag_tolid": self.mag_tolid(),
             "size": self.size(),
             "quality": self.quality(),
             "completeness": self.completeness(),
@@ -191,6 +197,9 @@ class Jim(SummaryTable):
         return self.df["binner"]
 
     def bin_id(self) -> Series:
+        return self.df["bin"]
+
+    def mag_tolid(self) -> Series:
         return self.df["bin"]
 
     def size(self) -> Series:
@@ -263,6 +272,9 @@ class Noah(SummaryTable):
             + "_"
             + self.df["bin_id"]
         )
+
+    def mag_tolid(self) -> Series:
+        return self.df["tolid"]
 
     def size(self) -> Series:
         return self.df["size"]
