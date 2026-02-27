@@ -216,7 +216,7 @@ class Jim(SummaryTable):
         return self.df["sum_len"]
 
     def mean_depth(self) -> Series:
-        return self.df["mean_depth"]
+        return self.df.get_column("mean_depth", default=Series([None] * self.df.height))
 
     def quality(self) -> Series:
         return self.df["quality"]
