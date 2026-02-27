@@ -50,7 +50,7 @@ class SummaryTable(ABC):
         "binner_refiner": String,
         "bin_id": String,
         "mag_tolid": String,
-        "size": Int32,
+        "size": Int64,
         "mean_depth": Float32,
         "quality": String,
         "completeness": Float32,
