@@ -27,6 +27,8 @@ LOOKUP_TABLE_SCHEMA = {
     "tissue_pacbio": String,
     "reducing_env": String,
     "is_deep_sea": String,
+    "dec_latitude": Float32,
+    "dec_longitude": Float32,
 }
 
 
@@ -42,11 +44,14 @@ class SummaryTable(ABC):
         "tissue_pacbio": String,
         "reducing_env": String,
         "is_deep_sea": String,
+        "dec_latitude": Float32,
+        "dec_longitude": Float32,
         "assembler": String,
         "binner_refiner": String,
         "bin_id": String,
         "mag_tolid": String,
         "size": Int32,
+        "mean_depth": Float32,
         "quality": String,
         "completeness": Float32,
         "contamination": Float32,
@@ -88,6 +93,10 @@ class SummaryTable(ABC):
 
     @abstractmethod
     def size(self) -> Series:
+        pass
+
+    @abstractmethod
+    def mean_depth(self) -> Series:
         pass
 
     @abstractmethod
@@ -148,6 +157,7 @@ class SummaryTable(ABC):
             "bin_id": self.bin_id(),
             "mag_tolid": self.mag_tolid(),
             "size": self.size(),
+            "mean_depth": self.mean_depth(),
             "quality": self.quality(),
             "completeness": self.completeness(),
             "contamination": self.contamination(),
@@ -204,6 +214,9 @@ class Jim(SummaryTable):
 
     def size(self) -> Series:
         return self.df["sum_len"]
+
+    def mean_depth(self) -> Series:
+        return self.df["mean_depth"]
 
     def quality(self) -> Series:
         return self.df["quality"]
@@ -278,6 +291,9 @@ class Noah(SummaryTable):
 
     def size(self) -> Series:
         return self.df["size"]
+    
+    def mean_depth(self) -> Series:
+        return self.df["mean_coverage"]
 
     def quality(self) -> Series:
         return self.df["quality"].str.to_lowercase()
